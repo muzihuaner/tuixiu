@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>法定退休年龄计算器</title>
+    <link rel="stylesheet" href="https://cdn.jsdmirror.com/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css">
+    <style>
+        .tips {
+            float: left;
+            line-height: 27px;
+            height: 140px;
+            margin: 20px;
+            font-size: 16px;
+            color: #464444;
+            width: 100%;
+            background-color: #fef8e8;
+            padding: 30px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center">法定退休年龄计算器</h1>
+        <form>
+            <div class="mb-3">
+                <label for="birthYear" class="form-label">出生年份</label>
+                <select class="form-select" id="birthYear">
+                    <!-- Options for years from 1900 to 2024 -->
+                    <!-- ... -->
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="birthMonth" class="form-label">出生月份</label>
+                <select class="form-select" id="birthMonth">
+                    <option value="01">1月</option>
+                    <option value="02">2月</option>
+                    <option value="03">3月</option>
+                    <option value="04">4月</option>
+                    <option value="05">5月</option>
+                    <option value="06">6月</option>
+                    <option value="07">7月</option>
+                    <option value="08">8月</option>
+                    <option value="09">9月</option>
+                    <option value="10">10月</option>
+                    <option value="11">11月</option>
+                    <option value="12">12月</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">性别及人员类型</label>
+                <select class="form-select" id="sexAndPersonType">
+                    <option value="1">男职工</option>
+                    <option value="2">原法定退休年龄 55 周岁女职工</option>
+                    <option value="3">原法定退休年龄 50 周岁女职工</option>
+                </select>
+            </div>
+            <button type="button" class="btn btn-primary" onclick="calculateRetirement()">计算</button>
+        </form>
+        <div class="mt-4">
+            <p>您的改革后法定退休年龄为：<span id="retireAge"></span></p>
+            <p>您的改革后退休时间为：<span id="retireTime"></span></p>
+            <p>您的延迟月数为：<span id="delayMonth"></span></p>
+        </div>
+
+
+        <div class="tips">
+            <p style="left: 30px;font-size: 14px;margin-top: 17px;">
+                说明：按照 <a href="https://www.mohrss.gov.cn/SYrlzyhshbzb/ztzl/zt202409/qwfb/202409/t20240913_525781.html">《关于实施渐进式延迟法定退休年龄的决定》</a>附表对照关系，您通过法定退休年龄计算器，选择出生年月、性别及人员类型，即可计算出对应的改革后法定退休年龄、改革后退休时间、延迟月数。
+            </p>
+        </div>
+    </div>
+
+    <script src="https://gcore.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.loli.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        // Populate year options
+        function populateYears() {
+            const startYear = 1900;
+            const endYear = new Date().getFullYear();
+            let options = '';
+            for (let year = startYear; year <= endYear; year++) {
+                options += `<option value="${year}">${year}</option>`;
+            }
+            $('#birthYear').html(options);
+        }
+
+        // Call populateYears when page loads
+        populateYears();
+
+        function calculateRetirement() {
+            var year = $('#birthYear').val();
+            var month = $('#birthMonth').val();
+            var sexAndPersonType = $('#sexAndPersonType').val();
+
+            var birth = year + '-' + month;
+            var retireAge = '';
+            var retireTime = '';
+            var delayMonth = '';
+
+            var retireDate = '';
+            if (sexAndPersonType === '1') {
+                if (birth < '1963-01') {
+                    retireDate = yearMonthAddYears(birth, 60);
+                } else {
+                    retireDate = yearMonthAddYears(birth, 63);
+                }
+                retireAge = yearMonthBetweenDates(birth, retireDate);
+                retireTime = formatDate(retireDate);
+                var delay = MonthsBetweenDates(birth, retireDate) - 60 * 12;
+                delayMonth = delay + '个月';
+            } else if (sexAndPersonType === '2') {
+                if (birth < '1968-01') {
+                    retireDate = yearMonthAddYears(birth, 55);
+                } else {
+                    retireDate = yearMonthAddYears(birth, 58);
+                }
+                retireAge = yearMonthBetweenDates(birth, retireDate);
+                retireTime = formatDate(retireDate);
+                var delay = MonthsBetweenDates(birth, retireDate) - 55 * 12;
+                delayMonth = delay + '个月';
+            } else if (sexAndPersonType === '3') {
+                if (birth < '1973-01') {
+                    retireDate = yearMonthAddYears(birth, 50);
+                } else {
+                    retireDate = yearMonthAddYears(birth, 55);
+                }
+                retireAge = yearMonthBetweenDates(birth, retireDate);
+                retireTime = formatDate(retireDate);
+                var delay = MonthsBetweenDates(birth, retireDate) - 50 * 12;
+                delayMonth = delay + '个月';
+            }
+
+            $("#retireAge").text(retireAge);
+            $("#retireTime").text(retireTime);
+            $("#delayMonth").text(delayMonth);
+        }
+
+        function yearMonthAddYears(date1, diffYear) {
+            var [year1, month1] = date1.split('-');
+            var years = parseInt(year1) + diffYear;
+            return `${years}-${month1}`;
+        }
+
+        function yearMonthBetweenDates(date1, date2) {
+            var [year1, month1] = date1.split('-').map(Number);
+            var [year2, month2] = date2.split('-').map(Number);
+
+            var years = year2 - year1;
+            var months = month2 - month1;
+
+            if (months < 0) {
+                years--;
+                months += 12;
+            }
+            return months === 0 ? `${years}岁` : `${years}岁${months}个月`;
+        }
+
+        function MonthsBetweenDates(date1, date2) {
+            var [year1, month1] = date1.split('-').map(Number);
+            var [year2, month2] = date2.split('-').map(Number);
+
+            var years = year2 - year1;
+            var months = month2 - month1;
+
+            if (months < 0) {
+                years--;
+                months += 12;
+            }
+            return years * 12 + months;
+        }
+
+        function formatDate(date) {
+            var [year, month] = date.split('-');
+            month = month.padStart(2, '0');  // Ensure month is two digits
+            return `${year}年${month}月`;
+        }
+    </script>
+</body>
+
+</html>
